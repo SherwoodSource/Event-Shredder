@@ -1,25 +1,57 @@
-@ECHO OFF
-:start
-title Event Shredder
-echo.
-echo ----------------------------------------------------------------------------
-echo.
-echo                          Event Shredder Ver 1.0
-echo.
-echo ----------------------------------------------------------------------------
-echo Welcome to Event Shredder, this is an open source project. Join the
-echo developer team today and help us delete useless logs in Windows machines!
-echo If you want to clear useless computer logs . . .
-echo ----------------------------------------------------------------------------
+@echo off
 
-color F0
+:: Original Author: Nolan Sherwood
+:: Licence: Open Source
+
+:: Date: 07-NOV-14
+color F8
+title Event Shredder.exe
+echo.
+:echo.call
+:ColorText /Fa "Event Shredder Ver 1.0"
+
+echo.
+set /p ".= " <nul
+call :ColorText F8 "---------------------------------------------------------------------------"
+
+echo.
+echo.
+set /p ".= " <nul
+call :ColorText F9 "                          Event Shredder Ver 1.0"
+
+echo.
+echo.
+set /p ".= " <nul
+call :ColorText F8 "---------------------------------------------------------------------------"
+
+echo.
+set /p ".= " <nul
+call :ColorText Fa "Welcome to Event Shredder, this is an open source project. Join the developer"
+echo.
+
+
+set /p ".= " <nul
+call :ColorText Fa "team today and help us delete useless logs in Windows machines!"
+echo.
+set /p ".= " <nul
+call :ColorText F8 "----------------------------------------------------------------------------"
+echo.
 pause
 cls
-echo ----------------------------------------------------------------------------
-echo Thank you for using Event Shredder!
-echo Author Nolan Sherwood
-echo http://www.webdesignportfolio.wix.com/home
-echo ----------------------------------------------------------------------------
+set /p ".= " <nul
+call :ColorText F8 "----------------------------------------------------------------------------"
+echo.
+set /p ".= " <nul
+call :ColorText F9 "Thank you for using Event Shredder!"
+echo.
+set /p ".= " <nul
+call :ColorText F9 "Author Nolan Sherwood"
+echo.
+set /p ".= " <nul
+call :ColorText F9 "Visit github to contribute to this project!"
+echo.
+set /p ".= " <nul
+call :ColorText F8 "----------------------------------------------------------------------------"
 echo.
 echo.
 echo.
@@ -38,3 +70,18 @@ echo You must run this script as an Administrator!
 echo ^<press any key^>
 :theEnd
 pause>NUL
+echo.
+echo.
+pause
+exit
+
+
+:: Keep this label exactly as it is and do not change anything here!
+
+:ColorText [%1 = Color] [%2 = Text]
+set /p ".=." > "%~2" <nul 
+findstr /v /a:%1 /R "^$" "%~2" nul 2>nul
+set /p ".=" <nul
+if "%3" == "end" set /p ".=  " <nul
+del "%~2" >nul 2>nul
+exit /b

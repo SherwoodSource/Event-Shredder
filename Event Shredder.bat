@@ -17,7 +17,7 @@ pause
 cls
 echo ----------------------------------------------------------------------------
 echo Thank you for using Event Shredder!
-echo Copyright 2014 OpenSourceCode
+echo Author Nolan Sherwood
 echo http://www.webdesignportfolio.wix.com/home
 echo ----------------------------------------------------------------------------
 echo.

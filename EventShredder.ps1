@@ -89,7 +89,18 @@ $btnShred.Add_Click({
     }
 
     $logBox.AppendText("`nSuccessfully shredded all event logs!")
-    [System.Windows.Forms.MessageBox]::Show("Event logs have been successfully shredded.", "Success", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Information)
+
+    # Save log to file (Step 4)
+    try {
+        $logPath = Join-Path $PSScriptRoot "ShredResults.txt"
+        $logBox.Text | Out-File -FilePath $logPath -Encoding utf8
+        $logBox.AppendText("`nLog saved to: ShredResults.txt")
+        $logBox.ScrollToCaret()
+    } catch {
+        $logBox.AppendText("`nError saving log: $($_.Exception.Message)")
+    }
+
+    [System.Windows.Forms.MessageBox]::Show("Event logs have been successfully shredded and recorded in ShredResults.txt.", "Success", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Information)
     $btnShred.Enabled = $true
 })
 

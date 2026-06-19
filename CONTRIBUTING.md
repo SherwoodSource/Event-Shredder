@@ -1,33 +1,31 @@
-Event-Shredder
-==============
+# Contributing to Event-Shredder
 
-Event Shredder is an open-source utility designed to clear Windows event logs, helping to maintain privacy and free up system resources.
+Thank you for taking the time to contribute! We are actively working on the `modernize-event-shredder` branch and need your hands on the deck.
 
-### Updates
-- **v1.2**:
-    - **Dual-Mode Execution Architecture**: Introduced a new execution layer allowing users to choose between 'Safe Mode' (default) and 'Unconstrained Mode'.
-    - **Critical Log Protection**: Safe Mode automatically preserves 20 critical system channels (e.g., Security, PowerShell, AppLocker) to maintain system integrity and auditing.
-    - **Advanced/Unconstrained Mode**: Provides a short-circuit pathway for power users to shred all logs without exception.
-- **v1.1**:
-    - **Modern GUI**: Updated from a legacy batch terminal to a professional Graphical User Interface (GUI) built with PowerShell and Windows Forms.
-    - **Full Compatibility**: Now fully optimized for Windows 10 and Windows 11.
-    - **Improved Stability**: Added robust administrative privilege checks and better handling for system-locked logs.
-    - **Session Logging**: Each shredding session is now automatically recorded in a `ShredResults.txt` file for your records.
+## 🎯 Where We Need You Most
 
-### Usage
-Run `Event Shredder.bat` to launch the application. It will automatically request Administrator privileges if they are not already granted.
+### 1. Feature Development
+If you want to dive straight into the codebase, we are currently prioritizing:
+* **Asynchronous Execution:** Moving heavy log-clearing loops off the main UI thread to prevent the application from freezing.
+* **Error & Lock Diagnostics:** Improving try-catch blocks to safely handle and report locked system files or administrative access denials without crashing.
 
-### Contribution
-## 🚀 We Need Help!
-# Current Focus & Roadmap:
+### 2. Roadmapping Future Goals
+We want to expand what Event-Shredder can do, and we need thinkers to help us map out features like:
+* **True Forensic Shredding:** Moving from standard file deletion to secure, sector-overwriting data destruction.
+* **Granular Filtering:** Allowing users to target logs by specific date ranges, Event IDs, or keywords.
+* **CLI Engine:** Separating the core logic from the UI so the tool can be run headlessly via command line or Windows Task Scheduler.
 
-Event-Shredder is actively modernizing, and we are looking for contributors to help shape the future of this tool. Whether you are a seasoned developer or great at project planning, we have a place for you.
+If you have ideas on how to architecture these, open a new thread in the **Discussions** tab or submit a feature proposal issue!
 
-We are currently looking for help with three main areas:
+### 3. Turning Goals into Actionable Tasks
+Good documentation keeps a project alive. If you are great at organizing projects, you can help us by:
+* Creating specific GitHub Issues based on our roadmap.
+* Writing clear "Acceptance Criteria" for existing open issues so other developers know exactly what a successful PR looks like.
 
-1. **Feature Development:** Writing code to improve log-clearing mechanics, optimizing performance, and making the dual-mode execution (Standard vs. Advanced) rock-solid.
-2. **Roadmapping Future Goals:** Helping us brainstorm, structure, and plan what Event-Shredder should look like in the next 6 to 12 months.
-3. **Project Management & Goal Setup:** Breaking down our big-picture goals into bite-sized, actionable GitHub Issues that other developers can easily pick up.
+---
 
-### How to Get Started
-Check out our [CONTRIBUTING.md](./CONTRIBUTING.md) file for a deep dive into our current development goals and how you can claim a task!
+## 🛠️ Getting Started Locally
+1. **Fork and Clone:** Fork the repository to your own GitHub account, clone it locally, and make sure you switch to the `modernize-event-shredder-1026476692712707482` branch.
+2. **Environment Setup:** Set up your local Windows development environment (add any specific build, IDE, or tool requirements here).
+3. **Find a Task:** Look through our open issues tracker for tasks tagged `good first issue` or `help wanted` to grab something to work on.
+4. **Submit a Pull Request (PR):** Once you’ve written and tested your changes, push them to your forked repository. Then, open a Pull Request back to our project branch so we can review your code, give feedback, and merge it into the project!

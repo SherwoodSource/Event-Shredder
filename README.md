@@ -17,9 +17,9 @@ Event Shredder is an open-source utility designed to clear Windows event logs, h
 ### Usage
 Run `Event Shredder.bat` to launch the application. It will automatically request Administrator privileges if they are not already granted.
 
-### Contribution
+# Contribution
 ## 🚀 We Need Help!
-# Current Focus & Roadmap:
+### Current Focus & Roadmap:
 
 Event-Shredder is actively modernizing, and we are looking for contributors to help shape the future of this tool. Whether you are a seasoned developer or great at project planning, we have a place for you.
 

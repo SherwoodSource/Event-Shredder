@@ -1,15 +1,21 @@
-# --- Console Suppression (Win32 API) ---
-$win32Code = @'
-[DllImport("user32.dll")]
+# --- Console Suppression (Win32 API Fix) ---
+$kernel32Code = @'
+[DllImport("kernel32.dll")]
 public static extern IntPtr GetConsoleWindow();
+'@
 
+$user32Code = @'
 [DllImport("user32.dll")]
 public static extern bool ShowWindowAsync(IntPtr hWnd, int nCmdShow);
 '@
 
-$user32 = Add-Type -MemberDefinition $win32Code -Name "User32" -Namespace "Win32" -PassThru
-$consoleHandle = $user32::GetConsoleWindow()
-if ($consoleHandle -ne [IntPtr]::Zero) {
+$kernel32 = Add-Type -MemberDefinition $kernel32Code -Name "Kernel32" -Namespace "Win32" -PassThru
+$user32 = Add-Type -MemberDefinition $user32Code -Name "User32" -Namespace "Win32" -PassThru
+
+$consoleHandle = $kernel32::GetConsoleWindow()
+
+# Robust check for valid System.IntPtr
+if ($null -ne $consoleHandle -and $consoleHandle -ne [IntPtr]::Zero) {
     $user32::ShowWindowAsync($consoleHandle, 0) | Out-Null # 0 = SW_HIDE
 }
 

@@ -1,3 +1,18 @@
+# --- Console Suppression (Win32 API) ---
+$win32Code = @'
+[DllImport("user32.dll")]
+public static extern IntPtr GetConsoleWindow();
+
+[DllImport("user32.dll")]
+public static extern bool ShowWindowAsync(IntPtr hWnd, int nCmdShow);
+'@
+
+$user32 = Add-Type -MemberDefinition $win32Code -Name "User32" -Namespace "Win32" -PassThru
+$consoleHandle = $user32::GetConsoleWindow()
+if ($consoleHandle -ne [IntPtr]::Zero) {
+    $user32::ShowWindowAsync($consoleHandle, 0) | Out-Null # 0 = SW_HIDE
+}
+
 Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Drawing
 

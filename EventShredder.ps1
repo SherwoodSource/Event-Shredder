@@ -1,7 +1,7 @@
 Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Drawing
 
-# --- Elevation Logic (Step 2) ---
+# --- Elevation Logic ---
 $currentPrincipal = New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())
 if (-not $currentPrincipal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
     $processInfo = New-Object System.Diagnostics.ProcessStartInfo
@@ -18,8 +18,8 @@ if (-not $currentPrincipal.IsInRole([Security.Principal.WindowsBuiltInRole]::Adm
 
 # --- GUI Setup ---
 $form = New-Object System.Windows.Forms.Form
-$form.Text = "Event Shredder v1.1"
-$form.Size = New-Object System.Drawing.Size(500, 450)
+$form.Text = "Event Shredder v1.2"
+$form.Size = New-Object System.Drawing.Size(500, 520)
 $form.StartPosition = "CenterScreen"
 $form.FormBorderStyle = "FixedDialog"
 $form.MaximizeBox = $false
@@ -35,17 +35,25 @@ $titleLabel.TextAlign = "MiddleCenter"
 $form.Controls.Add($titleLabel)
 
 $descLabel = New-Object System.Windows.Forms.Label
-$descLabel.Text = "This utility will clear all Windows Event Logs to free up space and maintain privacy. Click the button below to start the process."
+$descLabel.Text = "This utility will clear Windows Event Logs to maintain privacy. Select your shredding mode below."
 $descLabel.Font = New-Object System.Drawing.Font("Segoe UI", 9)
 $descLabel.Size = New-Object System.Drawing.Size(440, 40)
 $descLabel.Location = New-Object System.Drawing.Size(30, 70)
 $descLabel.TextAlign = "MiddleCenter"
 $form.Controls.Add($descLabel)
 
+$chkAllowAll = New-Object System.Windows.Forms.CheckBox
+$chkAllowAll.Text = "Shred Critical System Logs (Advanced/Unconstrained Mode)"
+$chkAllowAll.Font = New-Object System.Drawing.Font("Segoe UI", 8, [System.Drawing.FontStyle]::Italic)
+$chkAllowAll.Size = New-Object System.Drawing.Size(440, 20)
+$chkAllowAll.Location = New-Object System.Drawing.Size(35, 110)
+$chkAllowAll.Checked = $false
+$form.Controls.Add($chkAllowAll)
+
 $btnShred = New-Object System.Windows.Forms.Button
-$btnShred.Text = "Shred All Event Logs"
+$btnShred.Text = "Shred Event Logs"
 $btnShred.Size = New-Object System.Drawing.Size(200, 40)
-$btnShred.Location = New-Object System.Drawing.Size(150, 130)
+$btnShred.Location = New-Object System.Drawing.Size(150, 140)
 $btnShred.Font = New-Object System.Drawing.Font("Segoe UI", 10, [System.Drawing.FontStyle]::Bold)
 $btnShred.BackColor = [System.Drawing.Color]::FromArgb(0, 102, 204)
 $btnShred.ForeColor = [System.Drawing.Color]::White
@@ -54,53 +62,90 @@ $form.Controls.Add($btnShred)
 
 $progressBar = New-Object System.Windows.Forms.ProgressBar
 $progressBar.Size = New-Object System.Drawing.Size(440, 25)
-$progressBar.Location = New-Object System.Drawing.Size(30, 190)
+$progressBar.Location = New-Object System.Drawing.Size(30, 200)
 $form.Controls.Add($progressBar)
 
 $logBox = New-Object System.Windows.Forms.RichTextBox
-$logBox.Size = New-Object System.Drawing.Size(440, 160)
-$logBox.Location = New-Object System.Drawing.Size(30, 230)
+$logBox.Size = New-Object System.Drawing.Size(440, 220)
+$logBox.Location = New-Object System.Drawing.Size(30, 240)
 $logBox.ReadOnly = $true
 $logBox.Font = New-Object System.Drawing.Font("Consolas", 8)
 $logBox.BackColor = [System.Drawing.Color]::White
 $form.Controls.Add($logBox)
 
-# --- Logic (Step 3) ---
+# --- Execution Layer ---
 $btnShred.Add_Click({
+    $allowAllLogs = $chkAllowAll.Checked
     $btnShred.Enabled = $false
     $logBox.Clear()
-    $logBox.AppendText("Starting shredding process...`n")
+
+    $modeText = if ($allowAllLogs) { "UNCONSTRAINED MODE" } else { "SAFE MODE (PROTECTED)" }
+    $logBox.AppendText("Initializing shredding in $modeText...`n")
+
+    $criticalLogs = @(
+        "System", "Security", "Application", "Setup", "ForwardedEvents",
+        "Microsoft-Windows-PowerShell/Operational", "Microsoft-Windows-PowerShell/Admin",
+        "Microsoft-Windows-AppLocker/EXE and DLL", "Microsoft-Windows-AppLocker/MSI and Script",
+        "Microsoft-Windows-CodeIntegrity/Operational", "Microsoft-Windows-DeviceGuard/Operational",
+        "Microsoft-Windows-NTLM/Operational", "Microsoft-Windows-TerminalServices-LocalSessionManager/Operational",
+        "Microsoft-Windows-TerminalServices-LocalSessionManager/Admin", "Microsoft-Windows-TaskScheduler/Operational",
+        "Microsoft-Windows-WMI-Activity/Operational", "Microsoft-Windows-CAPI2/Operational",
+        "Microsoft-Windows-Crypto-DPAPI/Operational", "Microsoft-Windows-Dhcp-Client/Operational",
+        "Microsoft-Windows-DNS-Client/Operational"
+    )
 
     $logs = wevtutil.exe el
     $progressBar.Maximum = $logs.Count
     $progressBar.Value = 0
 
     $counter = 0
-    foreach ($logName in $logs) {
-        $counter++
-        $logBox.AppendText("[$counter/$($logs.Count)] Clearing: $logName`n")
-        $logBox.ScrollToCaret()
+    foreach ($rawLogName in $logs) {
+        $logName = $rawLogName.Trim()
+        if ([string]::IsNullOrWhiteSpace($logName)) { continue }
 
-        # Using wevtutil cl directly as it's efficient
+        $counter++
+        $progressBar.Value = $counter
+
+        if (-not $allowAllLogs) {
+            # Case-insensitive validation against protected array
+            if ($criticalLogs -contains $logName) {
+                $logBox.SelectionColor = [System.Drawing.Color]::DarkGoldenrod
+                $logBox.AppendText("Preserving (Safety Mode): $logName`n")
+                $logBox.ScrollToCaret()
+                continue
+            }
+        }
+
+        # Shredding logic with robust error detection
+        $logBox.SelectionColor = [System.Drawing.Color]::Black
+        $logBox.AppendText("Clearing: $logName... ")
+
         wevtutil.exe cl "$logName" 2>$null
 
-        $progressBar.Value = $counter
+        if ($LASTEXITCODE -eq 0) {
+            $logBox.SelectionColor = [System.Drawing.Color]::Green
+            $logBox.AppendText("DONE`n")
+        } else {
+            $logBox.SelectionColor = [System.Drawing.Color]::Red
+            $logBox.AppendText("FAILED (Locked)`n")
+        }
+
+        $logBox.ScrollToCaret()
         [System.Windows.Forms.Application]::DoEvents()
     }
 
-    $logBox.AppendText("`nSuccessfully shredded all event logs!")
+    $logBox.SelectionColor = [System.Drawing.Color]::Blue
+    $logBox.AppendText("`nShredding session complete!")
 
-    # Save log to file (Step 4)
     try {
         $logPath = Join-Path $PSScriptRoot "ShredResults.txt"
         $logBox.Text | Out-File -FilePath $logPath -Encoding utf8
-        $logBox.AppendText("`nLog saved to: ShredResults.txt")
-        $logBox.ScrollToCaret()
+        $logBox.AppendText("`nResults recorded in: ShredResults.txt")
     } catch {
-        $logBox.AppendText("`nError saving log: $($_.Exception.Message)")
+        $logBox.AppendText("`nError saving record: $($_.Exception.Message)")
     }
 
-    [System.Windows.Forms.MessageBox]::Show("Event logs have been successfully shredded and recorded in ShredResults.txt.", "Success", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Information)
+    [System.Windows.Forms.MessageBox]::Show("The shredding session is complete. Mode: $modeText", "Success", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Information)
     $btnShred.Enabled = $true
 })
 
